@@ -5,6 +5,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.cluster import DBSCAN
 from rich.progress import Progress
+import numpy as np
+from matplotlib import offsetbox
 
 def load_and_preprocess_data(file_path):
     with Progress() as progress:
@@ -43,38 +45,38 @@ def pca_and_clustering(data_scaled, identifiers):
         return principal_components, clusters, identifiers
 
 def visualize_clusters(principal_components, clusters, identifiers):
-    plt.figure(figsize=(14, 10))  # Increased figure size for better clarity
 
-    # Separate regular points and outliers for different visualization styles
+    plt.figure(figsize=(14, 10))
+    
     regular_mask = clusters != -1
     outlier_mask = clusters == -1
     regular_data = principal_components[regular_mask]
     outliers = principal_components[outlier_mask]
     outlier_ids = identifiers[outlier_mask]
 
-    # Plot regular data points
-    plt.scatter(regular_data[:, 0], regular_data[:, 1], c='blue', label='Regular Data', alpha=0.5, s=50)
+    # Plot regular data points with reduced size and increased transparency
+    plt.scatter(regular_data[:, 0], regular_data[:, 1], c='blue', label='Regular Data', alpha=0.2, s=20)
 
-    # Plot outliers in red
-    plt.scatter(outliers[:, 0], outliers[:, 1], c='red', label='Outliers', s=100, edgecolors='black')
+    # Plot outliers
+    outlier_plot = plt.scatter(outliers[:, 0], outliers[:, 1], c='red', label='Outliers', alpha=0.6, s=50)
 
-    # Annotate outliers
+    # Adding annotations smartly to avoid clutter
     for idx, (x, y) in enumerate(outliers):
-        plt.annotate(outlier_ids.iloc[idx], (x, y), textcoords="offset points", xytext=(0,10), ha='center')
+        ab = offsetbox.AnnotationBbox(offsetbox.TextArea(outlier_ids.iloc[idx]), (x, y), box_alignment=(1, -0.2), bboxprops=dict(alpha=0.5))
+        plt.gca().add_artist(ab)
 
     plt.xlabel('Principal Component 1')
     plt.ylabel('Principal Component 2')
-    plt.title('Cluster Visualization with Enhanced Outlier Visibility')
+    plt.title('Cluster Visualization with Improved Readability')
     plt.legend()
-    plt.colorbar(label='Cluster ID')
 
-    # Adjust axes to spread out the points
-    x_min, x_max = regular_data[:, 0].min(), regular_data[:, 0].max()
-    y_min, y_max = regular_data[:, 1].min(), regular_data[:, 1].max()
-    x_pad = (x_max - x_min) * 0.1  # Padding around the x limits
-    y_pad = (y_max - y_min) * 0.1  # Padding around the y limits
-    plt.xlim(x_min - x_pad, x_max + x_pad)
-    plt.ylim(y_min - y_pad, y_max + y_pad)
+    # Dynamically adjust plot limits with additional padding
+    all_data = np.vstack([regular_data, outliers])
+    x_min, x_max = all_data[:, 0].min(), all_data[:, 0].max()
+    y_min, y_max = all_data[:, 1].min(), all_data[:, 1].max()
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+
     plt.savefig('cluster_visualization_with_outliers.png', format='png', dpi=300)
     plt.grid(True)
     plt.show()
