@@ -65,9 +65,9 @@ def visualize_clusters(principal_components, clusters, identifiers):
         ab = offsetbox.AnnotationBbox(offsetbox.TextArea(outlier_ids.iloc[idx]), (x, y), box_alignment=(1, -0.2), bboxprops=dict(alpha=0.5))
         plt.gca().add_artist(ab)
 
-    plt.xlabel('Principal Component 1')
-    plt.ylabel('Principal Component 2')
-    plt.title('Cluster Visualization with Improved Readability')
+    plt.xlabel('Spending Power')
+    plt.ylabel('Purchasing Behavior')
+    plt.title('Visualization of Customer Behaviors Reflected By Their Credit Card Usage')
     plt.legend()
 
     # Dynamically adjust plot limits with additional padding
